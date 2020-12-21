@@ -20,8 +20,9 @@ app.use(require('./routes/products'));
 const urlDB = process.env.URLDB;
 // db connection
 mongoose.connect(urlDB, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true }, (err) => {
-    if (err)
+    if (err) {
         throw err;
+    }
     console.log('connected to database');
 });
 app.listen(process.env.PORT, () => {

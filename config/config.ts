@@ -22,7 +22,7 @@ process.env.USER_SECRET = usrSEED
 let urlDB: any
 
 process.env.NODE_ENV === 'dev'
-  ? (urlDB = 'mongodb://blog-db:27017/inventory')
+  ? (urlDB = 'mongodb://localhost:27017/inventory')
   : (urlDB = process.env.MONGO_URI)
 
 process.env.URLDB = urlDB

@@ -1,7 +1,11 @@
 "use strict";
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var productSchema = new Schema({
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = __importDefault(require("mongoose"));
+const Schema = mongoose_1.default.Schema;
+const productSchema = new Schema({
     name: { type: String, required: [true, 'El nombre es necesario'] },
     uniPrice: {
         type: Number,
@@ -13,4 +17,6 @@ var productSchema = new Schema({
     image: { type: String, required: false },
     aviable: { type: Boolean, required: true, default: true },
 });
-module.exports = mongoose.model('Product', productSchema);
+const Product = mongoose_1.default.model('Product', productSchema);
+exports.default = Product;
+// module.exports = mongoose.model('Product', productSchema)

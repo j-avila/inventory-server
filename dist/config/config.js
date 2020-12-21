@@ -15,7 +15,7 @@ process.env.USER_SECRET = usrSEED;
 // database
 let urlDB;
 process.env.NODE_ENV === 'dev'
-    ? (urlDB = 'mongodb+srv://jlavila13:jos34vila@cluster0.j8r2g.mongodb.net/inventory?retryWrites=true&w=majority')
+    ? (urlDB = 'mongodb://localhost:27017/inventory')
     : (urlDB = process.env.MONGO_URI);
 process.env.URLDB = urlDB;
 // googleid

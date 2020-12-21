@@ -1,7 +1,17 @@
-var mongoose = require('mongoose')
-var Schema = mongoose.Schema
+import mongoose from 'mongoose'
+const Schema = mongoose.Schema
 
-var productSchema = new Schema({
+export interface IProduct extends mongoose.Document {
+  name: string
+  uniPrice: number
+  sku: number
+  brand: string
+  description: string
+  image: string
+  avaiable: boolean
+}
+
+const productSchema = new Schema({
   name: { type: String, required: [true, 'El nombre es necesario'] },
   uniPrice: {
     type: Number,
@@ -14,4 +24,7 @@ var productSchema = new Schema({
   aviable: { type: Boolean, required: true, default: true },
 })
 
-module.exports = mongoose.model('Product', productSchema)
+const Product = mongoose.model<IProduct>('Product', productSchema)
+export default Product
+
+// module.exports = mongoose.model('Product', productSchema)
