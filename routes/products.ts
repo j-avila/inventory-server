@@ -1,41 +1,23 @@
 import express from 'express'
 const app = express()
-import _ from 'underscore'
 import { IProduct } from '../models/product'
 import Product from '../models/product'
+import bodyParser from 'body-parser'
+import multer from 'multer'
 import AWS from 'aws-sdk'
-
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_ID,
   secretAccessKey: process.env.AWS_ACCESS_SECRET,
 })
 
-export const imgUpload = (file: any, folder: string) => {
-  console.log(file, folder)
-  const s3bucket = 'jlat-test'
-  const { fileName, fileType } = file
-  const s3Params = {
-    Bucket: `${s3bucket}/${folder}`,
-    Key: fileName,
-    Expires: 500,
-    ContentType: fileType,
-    ACL: 'public-read',
-  }
+const upload = multer()
+const bucketName = process.env.S3_BUCKET || 'jlat-test'
 
-  s3.getSignedUrl('putObject', s3Params, (err, data) => {
-    if (err) {
-      console.log(err)
-    }
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
-    const returnData = {
-      signedRequest: data,
-      url: `https://${s3bucket}.s3.amazonaws.com/${folder}/${fileName}`,
-    }
-    console.log(returnData)
-    return returnData
-  })
-}
-
+// routes
 app.get('/products', async (req: any, res: any) => {
   const terms = req.query.name
   const regex = new RegExp(terms, 'i')
@@ -88,8 +70,11 @@ app.get('/products/sku', async (req: any, res: any) => {
     })
 })
 
-app.post('/products', async (req: any, res: any) => {
+app.post('/products', upload.single('image'), async (req: any, res: any) => {
   let body: any = req.body
+  let image = req.file
+
+  console.log('init', image)
 
   const product: IProduct = new Product({
     sku: body.sku,
@@ -97,35 +82,55 @@ app.post('/products', async (req: any, res: any) => {
     aviable: body.aviable,
     uniPrice: body.uniPrice,
     brand: body.brand,
-    image: body.image,
+    image: '',
     description: body.description,
     category: body.category,
   })
 
-  product.save((err: any, dbRes: any) => {
+  const s3Params = {
+    Bucket: bucketName,
+    Key: image.originalname,
+    Expires: 500,
+    ContentType: image.fileType,
+    ACL: 'public-read',
+    Body: image.buffer
+  }
 
-    const productImg = imgUpload(req.body.image, 'inventory')
-
+  s3.getSignedUrl('putObject', s3Params, (err, data) => {
     if (err) {
-      return res.status(500).json({
-        ok: false,
-        err
-      })
+      console.log(err)
+      return res.end()
     }
 
-    if (!dbRes) {
-      return res.status(400).json({
-        ok: false,
-        err
-      })
+    const returnData = {
+      signedRequest: data,
+      url: `https://${bucketName}.s3.amazonaws.com/inventory/${image.originalname}`,
     }
 
-    res.json({
-      ok: true,
-      product: { ...dbRes, image: productImg }
+    product.save(async (err: any, dbRes: any) => {
+
+      if (err) {
+        return res.status(500).json({
+          ok: false,
+          err
+        })
+      }
+
+      if (!dbRes) {
+        return res.status(400).json({
+          ok: false,
+          err
+        })
+      }
+
+      let { id, aviable, sku, name, uniPrice, brand, image, description } = dbRes
+
+      res.json({
+        ok: true,
+        product: { id, aviable, sku, name, uniPrice, brand, description, image: returnData.url }
+      })
     })
   })
-
 
 })
 

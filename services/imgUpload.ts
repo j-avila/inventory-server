@@ -4,11 +4,13 @@ const s3 = new AWS.S3({
   secretAccessKey: process.env.AWS_ACCESS_SECRET,
 })
 
-export const imgUpload = (file) => {
-  const { fileName, fileType, folder } = file
+const bucketName = process.env.S3_BUCKET || 'jlat-test'
+
+export const imgUpload = (file: any) => {
+  const { originalname, fileType, folder = 'inventory' } = file
   const s3Params = {
-    Bucket: process.env.S3_BUKCET,
-    Key: fileName,
+    Bucket: bucketName,
+    Key: originalname,
     Expires: 500,
     ContentType: fileType,
     ACL: 'public-read',
@@ -21,9 +23,11 @@ export const imgUpload = (file) => {
 
     const returnData = {
       signedRequest: data,
-      url: `https://${process.env.s3_BUBCKET}.s3.amazonaws.com/${fileName}`,
+      url: `https://${bucketName}.s3.amazonaws.com/${folder}/${originalname}`,
     }
-
-    return returnData
+    console.log('resolved')
+    return JSON.stringify(returnData);
   })
 }
+
+export default imgUpload
